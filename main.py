@@ -3,7 +3,6 @@ import cv2
 import argparse
 from utils import *
 import mediapipe as mp
-from body_part_angle import BodyPartAngle
 from types_of_exercise import TypeOfExercise
 
 ## setup agrparse
@@ -30,12 +29,12 @@ if args["video_source"] is not None:
 else:
     cap = cv2.VideoCapture(0)  # webcam
 
-cap.set(3, 800)  # width
-cap.set(4, 480)  # height
+# cap.set(3, 800)  # width
+# cap.set(4, 480)  # height
 
 ## setup mediapipe
-with mp_pose.Pose(min_detection_confidence=0.5,
-                  min_tracking_confidence=0.5) as pose:
+with mp_pose.Pose(min_detection_confidence=0.7,
+                  min_tracking_confidence=0.7) as pose:
 
     counter = 0  # movement of exercise
     status = True  # state of move
@@ -43,7 +42,7 @@ with mp_pose.Pose(min_detection_confidence=0.5,
         ret, frame = cap.read()
         # result_screen = np.zeros((250, 400, 3), np.uint8)
 
-        frame = cv2.resize(frame, (800, 480), interpolation=cv2.INTER_AREA)
+        # frame = cv2.resize(frame, (480, 800), interpolation=cv2.INTER_AREA)
         ## recolor frame to RGB
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame.flags.writeable = False
@@ -60,7 +59,7 @@ with mp_pose.Pose(min_detection_confidence=0.5,
         except:
             pass
 
-        score_table(args["exercise_type"], counter, status)
+        # score_table(args["exercise_type"], counter, status)
 
         ## render detections (for landmarks)
         mp_drawing.draw_landmarks(
@@ -70,12 +69,23 @@ with mp_pose.Pose(min_detection_confidence=0.5,
             mp_drawing.DrawingSpec(color=(255, 255, 255),
                                    thickness=2,
                                    circle_radius=2),
-            mp_drawing.DrawingSpec(color=(174, 139, 45),
+            mp_drawing.DrawingSpec(color=(0, 0, 0),
                                    thickness=2,
                                    circle_radius=2),
         )
+        # flipped = cv2.flip(frame, 1)
+        flipped = frame
 
-        cv2.imshow('Video', frame)
+        # cv2.rectangle(flipped, (0, 20), (250, 130), (0,0,0), -1)
+
+        cv2.putText(flipped, "Exercise : " + args["exercise_type"].replace("-", " "),
+                (90, 90), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 2,
+                cv2.LINE_AA)
+        cv2.putText(flipped, "Reps : " + str(counter), (90, 150),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 2, cv2.LINE_AA)
+
+        cv2.imshow('Video', flipped)
+
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
 
